@@ -14,8 +14,9 @@ let record = [];
 
 let hasStarted = false;
 
-let winWidth = 480;
-let txtSize = 13;
+let scaling = 1;
+let defaultWidth = 480;
+let defaultTextSize = 13;
 
 let car1;
 let car2;
@@ -36,7 +37,9 @@ function getQuote(data) {
 }
 
 function setup() {
-  createCanvas(winWidth, winWidth / 16 * 9);
+  createCanvas(min(windowWidth, windowHeight), min(windowWidth, windowHeight) * 9 / 16);
+
+  scaling = width / defaultWidth;
   
   //Get first quote
   httpGet("https://api.quotable.io/random?maxLength=60", getQuote);
@@ -45,10 +48,10 @@ function setup() {
   car1 = loadImage("Car.png");
   car2 = loadImage("Car.png");
   
-  //CReate input field
+  //Create input field
   typedText = createInput();
-  typedText.position(25, height/2);
-  typedText.size(winWidth - 50);
+  typedText.position(25 * scaling, height / 2);
+  typedText.size(width - 50 * scaling);
 }
 
 function keyPressed() {
@@ -93,11 +96,11 @@ function updateTrack() {
   //Track
   fill("gray");
   noStroke();
-  rect(0, 25, width, height / 4);
+  rect(0, 25 * scaling, width, height / 4);
   
   stroke(0, 0, 0);
   drawingContext.setLineDash([5, 10, 30, 10]);
-  line(0, height / 8 + 25, width, height / 8 + 25);
+  line(0, height / 8 + 25 * scaling, width, height / 8 + 25 * scaling);
   
   //Cars
   image(car1, car1Pos, height / 9.3, width / 48 * 5, width / 96 * 5);
@@ -107,33 +110,33 @@ function updateTrack() {
 }
 
 function draw() {
-  background(255);
+  background(100);
   
   //Display quote
   fill(0, 0, 0);
-  textSize(txtSize);
+  textSize(defaultTextSize * scaling);
   textWrap(WORD);
-  text(targetText, 25, height / 2 - 35, winWidth - 50);
+  text(targetText, 20 * scaling, height / 2 - 25 * scaling, width - 50 * scaling);
   
   //Display timer
   if (!hasStarted) {
     fill(0, 0, 0);
-    textSize(txtSize);
-    text("Timer starts when you start typing...", 25, height / 2 + 35);
+    textSize(defaultTextSize * scaling);
+    text("Timer starts when you start typing...", 20 * scaling, height / 2 + 25 * scaling);
   } else {
     fill(0, 0, 0);
-    textSize(txtSize);
-    text("Time: " + (int((millis() - startTime)/1000)), 25, height / 2 + 35);
+    textSize(defaultTextSize * scaling);
+    text("Time: " + (int((millis() - startTime)/1000)), 20 * scaling, height / 2 + 25 * scaling);
   }
   
   //Display records
   fill(0, 0, 0);
-  textSize(txtSize);
-  text("Past Records: ", 25, height * 3 / 4)
+  textSize(defaultTextSize * scaling);
+  text("Past Records: ", 20 * scaling, height * 5 / 7)
   for (let i = 0; i < record.length; i++) {
     wpm = record[record.length - 1 - i][0];
     accuracy = record[record.length - 1 - i][1];
-    text("WPM: " + wpm + "  ||  ACCURACY: " + accuracy + "%", 25, height * 3 / 4 + ((i +1) * txtSize));
+    text("WPM: " + wpm + "  ||  ACCURACY: " + accuracy + "%", 20 * scaling, height * 5 / 7 + ((i +1) * defaultTextSize * scaling));
   }
   
   //Calculate wpm and accuracy once finished
@@ -141,6 +144,7 @@ function draw() {
   
   if (typedText.value() == targetText) {
     accuracy = int((2 * targetChar.length - totalInputs) / targetChar.length * 100);
+    accuracy = max(min(accuracy, 100), 0);
     wpm = int(typedText.value().split(" ").length / ((millis() - startTime) / 60000));
     
     append(record, [wpm, accuracy]);
@@ -162,34 +166,33 @@ function draw() {
   }
   
   //Display correct
-  textSize(txtSize);
+  textSize(defaultTextSize * scaling);
   textWrap(WORD);
   
   if (hasStarted) {
     fill(0, 255, 0);
     if (isWrong.length != 0) {
-      text(subset(targetChar, 0, isWrong[0]).join(""), 25, height / 2 - 35, winWidth - 50);  
+      text(subset(targetChar, 0, isWrong[0]).join(""), 20 * scaling, height / 2 - 25 * scaling, width - 50 * scaling);  
     } else {
-      text(subset(targetChar, 0, typedChar.length).join(""), 25, height / 2 - 35, winWidth - 50);  
+      text(subset(targetChar, 0, typedChar.length).join(""), 20 * scaling, height / 2 - 25 * scaling, width - 50 * scaling);  
     }  
   }
   
   //Display incorrect
   for (let i = 0; i < isWrong.length; i++) {
     fill(255, 0, 0);
-    text(targetChar[isWrong[i]], 25 + textWidth(subset(targetChar, 0, isWrong[i]).join("")), height / 2 - 35, winWidth - 50);
+    text(targetChar[isWrong[i]], 20 * scaling + textWidth(subset(targetChar, 0, isWrong[i]).join("")), height / 2 - 25 * scaling, width - 50 * scaling);
   }
   
   //Display sprites
   if (hasStarted) {
-    car1Pos = min(car1Pos + 0.4, width - 65);
+    car1Pos = min(car1Pos + 0.4 * scaling, width - 65 * scaling);
     
     if (isWrong.length != 0) {
-      car2Pos = isWrong[0] / targetWordCount * (width - 65);  
+      car2Pos = isWrong[0] / targetWordCount * (width - 65 * scaling);  
     } else {
-      car2Pos = typedChar.length / targetWordCount * (width - 65);
+      car2Pos = typedChar.length / targetWordCount * (width - 65 * scaling);
     }
-    
   }
   
   updateTrack();
